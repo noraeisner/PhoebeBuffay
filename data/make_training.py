@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import phoebe as phb
 import astropy.units as au
 import astropy.constants as ac
@@ -171,6 +172,15 @@ def generate_lightcurve(vector, n_phase):
             model[0] = model[n_phase]
             model[1] = model[n_phase+1]
             model = model[:n_phase]
+            # Rescaling to the median has two purposes:
+            # 1. The model is normalized to the median of the model
+            # 2. The effect of third light is accounted for, reducing the
+            #    apparent depth of the eclipses when third light is present
+            # We're taking care of the fractional third light here
+            # in a slightly hacky, but essentially equivalent way
+            l3 = np.nanmedian(model) * vector['l3']
+            model = model + l3
+            model /= np.nanmedian(model)
 
         except:
             print('Model failed')
@@ -191,7 +201,7 @@ if __name__ == '__main__':
 
     n_phase = 500
 
-    ndist = 4000
+    ndist = 2000
 
     # Generate random parameters
     period_dist = np.random.uniform(0.1, 25., ndist)
@@ -216,19 +226,19 @@ if __name__ == '__main__':
 
 
     # General, non-circular case
-    # ecc_dist = np.random.uniform(0., 0.5, ndist)
-    # omega_dist = np.random.uniform(0., 360, ndist)
+    ecc_dist = np.random.uniform(0., 0.5, ndist)
+    per0_dist = np.random.uniform(0., 360, ndist)
 
     # Circular case
-    ecc_dist = np.zeros(ndist)
-    per0_dist = np.zeros(ndist)
+    # ecc_dist = np.zeros(ndist)
+    # per0_dist = np.zeros(ndist)
 
     teff2_dist = np.random.uniform(3501., 15000, ndist)
     teff1_dist = np.random.uniform(3501., 15000, ndist)
 
     incl_dist = np.random.uniform(45.,90,ndist)
-    # l3_dist = np.random.uniform(0.,0.99,ndist)
-    l3_dist = np.zeros(ndist)
+    l3_dist = np.random.uniform(0.,0.99,ndist)
+    # l3_dist = np.zeros(ndist)
 
     grb1_dist = np.random.uniform(0.,1.,ndist)
     grb2_dist = np.random.uniform(0.,1.,ndist)
@@ -236,10 +246,10 @@ if __name__ == '__main__':
     alb1_dist = np.random.uniform(0.,1.,ndist)
     alb2_dist = np.random.uniform(0.,1.,ndist)
 
+
     fmt_sim = '{:0>5d}'
     fmt_x = '{:0>4d}'
 
-    sim_num = np.array([fmt_sim.format(i) for i in range(ndist)])
     x_num = np.array([fmt_x.format(i) for i in range(n_phase)])
 
     theta_names = [ 'simulation', 'period', 't0', 'ecc', 'per0', 'q', 'sma','incl', 
@@ -249,18 +259,28 @@ if __name__ == '__main__':
 
     psi_names = [ 'simulation', 'mass1', 'radius1', 'logg1', 'mass2', 'radius2', 'logg2']
 
+    try:
+        print('Training data already exists')
+        df = pd.read_csv('./training/psi.txt')
+        n = df.shape[0]
+ 
+    except:
+        n = 0
+        with open('./training/theta.txt','a') as ft:
+            ft.write(','.join(theta_names)+'\n')
 
-    with open('./training/theta.txt','a') as ft:
-        ft.write(','.join(theta_names)+'\n')
+        with open('./training/simulations.txt', 'a') as f:
+            f.write(','.join(out_names)+'\n')
 
-    with open('./training/simulations.txt', 'a') as f:
-        f.write(','.join(out_names)+'\n')
-    with open('./training/psi.txt', 'a') as f:
-        f.write(','.join(psi_names)+'\n')
+        with open('./training/psi.txt', 'a') as f:
+            f.write(','.join(psi_names)+'\n')
 
+    # build a list of simulation numbers
+    sim_num = np.array([fmt_sim.format(i+n) for i in range(ndist)])
+ 
 
-    for i in range(ndist):
-        
+    for j in range(n, n + ndist):
+        i = j - n 
         vector = {'period': period_dist[i], 't0_frac': t0_frac_dist[i], 'ecc': ecc_dist[i], 'per0': per0_dist[i], 
                   'q': q_dist[i], 'sma': sma_dist[i], 'incl': incl_dist[i],
                   'reqv1': reqv1_dist[i], 'reqv2': reqv2_dist[i], 
@@ -293,5 +313,4 @@ if __name__ == '__main__':
         with open('./training/psi.txt', 'a') as f:
             f.write(','.join([sim_num[i], stringify_float(mass1), stringify_float(radius1), stringify_float(logg1),
                               stringify_float(mass2), stringify_float(radius2), stringify_float(logg2)])+'\n')
-
 
