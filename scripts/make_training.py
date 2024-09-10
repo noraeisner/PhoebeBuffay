@@ -226,19 +226,19 @@ if __name__ == '__main__':
 
 
     # General, non-circular case
-    ecc_dist = np.random.uniform(0., 0.5, ndist)
-    per0_dist = np.random.uniform(0., 360, ndist)
+    # ecc_dist = np.random.uniform(0., 0.5, ndist)
+    # per0_dist = np.random.uniform(0., 360, ndist)
 
     # Circular case
-    # ecc_dist = np.zeros(ndist)
-    # per0_dist = np.zeros(ndist)
+    ecc_dist = np.zeros(ndist)
+    per0_dist = np.zeros(ndist)
 
     teff2_dist = np.random.uniform(3501., 15000, ndist)
     teff1_dist = np.random.uniform(3501., 15000, ndist)
 
-    incl_dist = np.random.uniform(45.,90,ndist)
+    incl_dist = np.random.uniform(70.,90,ndist)
     l3_dist = np.random.uniform(0.,0.99,ndist)
-    # l3_dist = np.zeros(ndist)
+    #l3_dist = np.zeros(ndist)
 
     grb1_dist = np.random.uniform(0.,1.,ndist)
     grb2_dist = np.random.uniform(0.,1.,ndist)
