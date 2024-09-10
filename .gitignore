@@ -1,0 +1,20 @@
+# Compiled source
+
+*.pyc
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.~
+*.png
+*.c
+*/*.out
+*/*.c
+*.SAVE
+
+__pycache__/
+src/buffay/__pycache__/
+*.egg-info
+build/
+dist/
